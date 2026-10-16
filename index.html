@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Listening Challenge</title>
+<style>
+:root{
+  --bg: #fbf6ee; --card: #fff; --muted: #6b5e4a; --accent: #ff9800; --brown: #6b3f25;
+  --success: #4caf50; --danger: #e53935; --hover-glow: #fbd380; --selected-blue: #0d47a1;
+}
+body{ background: var(--bg); font-family: "Times New Roman", serif; display:flex; justify-content:center; padding:20px 12px; }
+.app{ max-width: 860px; width: 100%; background: var(--card); border-radius:14px; padding:24px; box-shadow:0 8px 30px rgba(30,30,30,0.08); }
+.logo{text-align:center; margin-bottom:4px;}
+.logo .title{ display:inline-block; padding:8px 16px; border-radius:10px; background:linear-gradient(90deg,#fffafa,#fff1dd); font-weight:bold; font-size:1.45rem; }
+.top-meta{text-align:center;margin-bottom:12px;}
+.progress{color:var(--muted);font-size:1.15rem;}
+.set-label{font-weight:bold;font-size:1.25rem;margin-top:4px;}
+.timer-box{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:12px; }
+.countdown{ background:#fff7ec; border:1px solid #f0d7b8; padding:14px 18px; border-radius:10px; width:220px; text-align:center; font-weight:bold; color:var(--brown); font-size:1.25rem; }
+.play-button{ padding:10px 18px; border-radius:8px; border:none; background: var(--brown); color:white; cursor:pointer; font-size:1.15rem; font-family: "Times New Roman", serif; }
+.play-button:hover{box-shadow:0 0 10px var(--hover-glow);}
+#skipCountdownBtn{ background:#d84315; font-size:1rem; padding:9px 16px; }
+.play-instruction{text-align:center; color:#d84315; font-weight:bold; font-size:1.3rem; margin-top:8px; margin-bottom:0px;}
+.mc-section{ margin-top:0px; }
+.per-q{ margin-bottom:10px; }
+.mc-question{font-weight:bold;margin-bottom:4px;font-size:1.2rem;}
+.mc-options-box{ background:linear-gradient(180deg,#ffffff,#fff4e6); border:1px solid #ecd7b8; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:4px; box-shadow:0 3px 6px rgba(0,0,0,0.03); font-size:1.18rem; }
+.mc-option-wrapper{ display:flex; align-items:flex-start; gap:6px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:0.3s; color:#000; font-family: "Times New Roman", serif; }
+.mc-option-wrapper:hover{box-shadow:0 0 8px var(--hover-glow);}
+.mc-option-wrapper.disabled{cursor:not-allowed;opacity:0.6;}
+.mc-option-wrapper input[type="radio"]{ margin-top:2px; accent-color: var(--selected-blue); }
+.next-row{ display:flex; justify-content:center; align-items:center; margin-top:18px; }
+.next-btn{ background: linear-gradient(135deg, #ff8f00, #e65100); color: white; border: none; padding: 14px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.3rem; font-family: "Times New Roman", serif; box-shadow: 0 8px 28px rgba(255, 111, 0, 0.45); transition: all 0.35s ease; }
+.next-btn:hover{ transform: translateY(-5px); box-shadow: 0 15px 40px rgba(255, 111, 0, 0.6); }
+.next-btn.submit { background: linear-gradient(135deg, #e65100, #c62828); box-shadow: 0 8px 28px rgba(198,40,40,.5); }
+.next-btn.submit:hover { box-shadow: 0 15px 40px rgba(198,40,40,.7); }
+.audio-ribbon{display:none; margin:20px auto; max-width:680px; width:100%; text-align:center; font-weight:bold; color:#6b3f25; font-size:1.1rem;}
+.audio-ribbon > div{ margin-bottom:10px; color:#d84315; }
+.audio-ribbon audio{ width:100%; max-width:600px; margin:0 auto; display:block; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+.saved-notify{ position:fixed; top:18px; right:18px; background:var(--success); color:white; padding:10px 14px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.15); opacity:0; transition:all 0.3s ease; z-index:9999; font-weight:bold; font-size:0.95rem; }
+.saved-notify.show{opacity:1;}
+#resultOverlay{ display:none; max-width:980px; margin:30px auto 0; padding:28px; background:#fffbe0; border-radius:14px; box-shadow:0 12px 40px rgba(30,30,30,0.12); font-family:"Times New Roman", serif; }
+.result-box{ border:1px solid #ddd; border-radius:12px; padding:18px; margin-bottom:22px; background:#fff; }
+.transcription{ margin:15px 0; padding:16px; background:#fdf8e1; border-left:5px solid var(--accent); border-radius:8px; font-size:1.15rem; line-height:1.9; direction:rtl; text-align:right; color:#222; }
+.transcription span.evidence-0 { background:#fff34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(255,243,77,0.7); }
+.transcription span.evidence-1 { background:#a7f3d0; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(167,243,208,0.7); color:#065f46; }
+.transcription span.evidence-2 { background:#fda4af; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(253,164,175,0.7); color:#881337; }
+.transcription span.evidence-3 { background:#93c5fd; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(147,197,253,0.7); color:#1e40af; }
+.transcription span.evidence-4 { background:#d8b4fe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(216,180,254,0.7); color:#6b21a8; }
+.transcription span.evidence-5 { background:#fcd34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(252,211,77,0.7); color:#92400e; }
+.transcription span.evidence-6 { background:#fecaca; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(254,202,202,0.7); color:#991b1b; }
+.transcription span.evidence-7 { background:#bfdbfe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(191,219,254,0.7); color:#1e40af; }
+.result-question{ font-weight:bold; font-size:1.22rem; margin:18px 0 10px; color:#333; }
+.result-option{ padding:10px 14px; margin:6px 0; border-radius:8px; font-size:1.15rem; display:flex; align-items:center; gap:10px; background:#f9f9f9; border:2px solid transparent; }
+.result-option.correct{ background:#d8f6df; border:2px solid #2e8b35; color:#0b5b2b; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.correct::after{ content:"Correct!"; position:absolute; right:14px; font-size:18px; }
+.result-option.wrong{ background:#fce8e8; border:2px solid #c73232; color:#8b0000; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.wrong::after{ content:"Wrong!"; position:absolute; right:14px; font-size:18px; }
+.result-option.your{ color:#d84315; font-weight:bold; }
+.score-box{ font-weight:bold; font-size:1.6rem; margin:0 0 30px 0; padding:20px; border-radius:12px; background:linear-gradient(90deg,#fff8b0,#ffe680); text-align:center; box-shadow:0 6px 20px rgba(255,200,0,0.25); }
+#congratsOverlay{ display:none; position:fixed; inset:0; background: rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center; }
+#congratsCard{ max-width:720px; width:90%; background: linear-gradient(135deg,#ffffff,#fff8f0); border-radius:18px; padding:28px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: popIn 400ms ease; }
+@keyframes popIn{ from{transform:translateY(10px) scale(.98); opacity:0} to{transform:none; opacity:1} }
+#congratsCard h1{ font-size:2rem; margin:6px 0; color:#2e6b3e; font-weight:bold; }
+#seeResultsBtn{ display:inline-block; padding:14px 22px; border-radius:12px; background: linear-gradient(90deg,#ffb74d,#ff8a65); color:white; font-weight:bold; font-size:1.1rem; border:none; cursor:pointer; box-shadow:0 8px 30px rgba(255,140,65,0.25); }
+#seeResultsBtn:hover{ transform:translateY(-3px); }
+.glow-instruction{ text-align:center; font-weight:bold; font-size:1.25rem; color:#6b3f25; text-shadow: 0 0 6px #ff8f00; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="logo"><div class="title">Listening Challenge</div></div>
+  <div class="top-meta">
+    <div class="progress" id="progressText"></div>
+    <div class="set-label" id="setLabel"></div>
+  </div>
+  <div class="timer-box">
+    <div class="countdown" id="countdownBox">Loading...</div>
+    <button id="skipCountdownBtn" class="play-button">Skip Countdown</button>
+  </div>
+  <div id="studyInstruction" class="glow-instruction">Study the Questions</div>
+  <div style="text-align:center; margin-top:12px;">
+    <button id="playBtn" class="play-button" style="display:none;">Play Audio</button>
+    <div id="audioNote" class="play-instruction" style="display:none;">
+      You will hear the recording <strong>twice</strong>
+    </div>
+  </div>
+  <div class="audio-ribbon" id="audioRibbon">
+    <div>Now playing... (beep → audio → beep → audio)</div>
+    <audio id="audioPlayer" controls preload="auto"></audio>
+  </div>
+  <audio id="beepAudio" src="beep.wav" preload="auto"></audio>
+  <div class="mc-section" id="mcSection"></div>
+  <div class="next-row">
+    <button id="nextBtn" class="next-btn">Next Challenge</button>
+  </div>
+</div>
+
+<div id="congratsOverlay">
+  <div id="congratsCard">
+    <img src="https://media.giphy.com/media/111ebonMs90YLu/giphy.gif" alt="celebrate" style="max-width:220px;margin:0 auto 12px auto;display:block;" />
+    <h1>Challenge Completed Successfully!</h1>
+    <p>Great job! Click below to see your detailed results.</p>
+    <button id="seeResultsBtn">See Results</button>
+  </div>
+</div>
+
+<div id="resultOverlay"></div>
+<div class="saved-notify" id="savedNotify">Answer saved</div>
+
+<script>
+const studySecondsPerQuestion = 15;
+let currentPage = 1;
+let countdownInterval = null;
+let timeLeft = 0;
+let audioSequenceActive = false;
+let abortAudio = false;
+const userAnswers = {};
+const letters = ["A", "B", "C", "D"];
+
+const el = {
+  progressText: document.getElementById("progressText"),
+  setLabel: document.getElementById("setLabel"),
+  countdownBox: document.getElementById("countdownBox"),
+  skipCountdownBtn: document.getElementById("skipCountdownBtn"),
+  playBtn: document.getElementById("playBtn"),
+  mcSection: document.getElementById("mcSection"),
+  nextBtn: document.getElementById("nextBtn"),
+  audioRibbon: document.getElementById("audioRibbon"),
+  audioPlayer: document.getElementById("audioPlayer"),
+  beepAudio: document.getElementById("beepAudio"),
+  savedNotify: document.getElementById("savedNotify"),
+  audioNote: document.getElementById("audioNote"),
+  resultOverlay: document.getElementById("resultOverlay"),
+  studyInstruction: document.getElementById("studyInstruction"),
+  congratsOverlay: document.getElementById("congratsOverlay"),
+  seeResultsBtn: document.getElementById("seeResultsBtn")
+};
+
+const listeningSets = [
+  {
+    audio: "01.wav",
+    transcription: `انتشار اطلاعات نادرست درباره تاثیر مثبت خوردن الکل بر کرونا و سودجویی متقلبان، آتیش این ماجرا رو شعله‌ورتر کرد. برخی از آن‌ها الکل صنعتی را با شیوه‌هایی بی‌رنگ می‌کنند و به جای الکل طبی می‌فروشند. هیچ مستندات علمی وجود نداره که خوردن الکل اتیلیک یا همون اتانول و یا قرقره کردن اون در محوطه دهانی، اثر پیشگیری از عفونت کروناویروس جدید رو داشته باشه. و علاوه بر اینکه هیچ اثری نداره، با خود همون اتانول هم امکان داره فرد مسموم بشه. بله، نکته دوم این هستش که متانول که به صورت الکل صنعتی ما می‌شناسیمش، اثر ضدمیکروبی‌ش بسیار ناچیزه در مقابل با اتانول، در مقایسه با اتانول، و از اون طرف سمیت بسیار بالایی داره که این باعث می‌شه اگه فردی اینو به صورت خوراکی استفاده کنه، باعث مسمومیت، کوری و حتی مرگ می‌شه`,
+    questions: [
+      { id: "1-1", question: "What is the main reason some people are consuming industrial alcohol during the COVID-19 pandemic?",
+        keyphrases: ["انتشار اطلاعات نادرست درباره تاثیر مثبت خوردن الکل بر کرونا"],
+        options: [
+          { answer: "They believe it has strong antimicrobial effects", correct:false },
+          { answer: "It is cheaper than medical alcohol", correct:false },
+          { answer: "Doctors recommended it as a preventive measure", correct:false },
+          { answer: "They mistakenly think it prevents COVID-19 infection", correct:true }
+        ]
+      },
+      { id: "1-2", question: "What is the key difference between ethanol (medical alcohol) and methanol (industrial alcohol) mentioned in the passage?",
+        keyphrases: ["متانول که به صورت الکل صنعتی ما می‌شناسیمش، اثر ضدمیکروبی‌ش بسیار ناچیزه در مقابل با اتانول، در مقایسه با اتانول، و از اون طرف سمیت بسیار بالایی داره"],
+        options: [
+          { answer: "Methanol has stronger antimicrobial properties than ethanol", correct:false },
+          { answer: "Ethanol has antimicrobial effects, whereas methanol is highly toxic with minimal antimicrobial effect", correct:true },
+          { answer: "Ethanol is highly toxic, while methanol is safe in small doses", correct:false },
+          { answer: "Both have similar antimicrobial effects and toxicity", correct:false }
+        ]
+      },
+      { id: "1-3", question: "According to the passage, what are the potential consequences of consuming methanol?",
+        keyphrases: ["اگه فردی اینو به صورت خوراکی استفاده کنه، باعث مسمومیت، کوری و حتی مرگ می‌شه"],
+        options: [
+          { answer: "Improved immunity and prevention of COVID-19", correct:false },
+          { answer: "Poisoning, blindness, and death", correct:true },
+          { answer: "Mild stomach discomfort", correct:false },
+          { answer: "Increased antimicrobial resistance", correct:false }
+        ]
+      },
+      { id: "1-4", question: "Why do some fraudsters decolorize industrial alcohol according to the passage?",
+        keyphrases: ["برخی از آن‌ها الکل صنعتی را با شیوه‌هایی بی‌رنگ می‌کنند و به جای الکل طبی می‌فروشند"],
+        options: [
+          { answer: "To make it taste better for drinking", correct:false },
+          { answer: "To reduce its toxicity", correct:false },
+          { answer: "To improve its antimicrobial properties", correct:false },
+          { answer: "To sell it as medical alcohol", correct:true }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "02.wav",
+    transcription: `در واقع افراط در نوشیدن الکل که به‌طور قطع یک رفتار ناسالم بهداشتیه که در بسیاری از کشورها رواج داره، اما برای علت‌یابی و پیشگیری از اتفاقات خطرناکی مثل اونچه در ایران افتاده یعنی مرگ تقریباً هزار نفر تو شش هفته گذشته، متخصصان بهداشتی و سیاست‌گذاران موظفند به‌طور مداوم وضعیت را از طریق آمارهای مراجع رسمی تحت نظر داشته باشند و به سرعت در صورت بروز حتی یک مورد مسمومیت یا مرگ برای جلوگیری از تکرار اون چاره‌اندیشی کنند. اما در ایران و کشورهایی که مشروب نوشیدن جرم تلقی می‌شه و آمار رسمی سیستم هشدار پزشکی براش نداره، به دلیل مجازاتی که براش در نظر گرفته شده درباره‌اش پنهان‌کاری می‌شه و امکان پاسخگویی سریع و پیشگیری از فاجعه مرگ هزار نفر وجود نداره`,
+    questions: [
+      { id: "2-1", question: "Why can alcohol-related deaths not be quickly prevented in Iran?",
+        keyphrases: ["اما در ایران و کشورهایی که مشروب نوشیدن جرم تلقی می‌شه و آمار رسمی سیستم هشدار پزشکی براش نداره"],
+        options: [
+          { answer: "Alcohol is widely consumed in secret", correct:false },
+          { answer: "Medical warning systems do not track illegal drinking", correct:true },
+          { answer: "Health experts are unaware of the risks", correct:false },
+          { answer: "Alcohol is less toxic in Iran", correct:false }
+        ]
+      },
+      { id: "2-2", question: "What is the role of health experts in countries where alcohol is legal?",
+        keyphrases: ["متخصصان بهداشتی و سیاست‌گذاران موظفند به‌طور مداوم وضعیت را از طریق آمارهای مراجع رسمی تحت نظر داشته باشند و به سرعت در صورت بروز حتی یک مورد مسمومیت یا مرگ برای جلوگیری از تکرار اون چاره‌اندیشی کنند"],
+        options: [
+          { answer: "Criminalize alcohol use", correct:false },
+          { answer: "Educate about religious prohibitions", correct:false },
+          { answer: "Produce alcohol safely", correct:false },
+          { answer: "Monitor statistics and respond to poisoning cases", correct:true }
+        ]
+      },
+      { id: "2-3", question: "What contributes to the high number of alcohol deaths in Iran?",
+        keyphrases: ["به دلیل مجازاتی که براش در نظر گرفته شده درباره‌اش پنهان‌کاری می‌شه و امکان پاسخگویی سریع و پیشگیری از فاجعه مرگ هزار نفر وجود نداره"],
+        options: [
+          { answer: "Public ignorance", correct:false },
+          { answer: "Legal penalties cause concealment and delayed response", correct:true },
+          { answer: "Alcohol availability", correct:false },
+          { answer: "Less regulation than other substances", correct:false }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "03.wav",
+    transcription: `بیشترین ماده توهم‌زایی که در تهران مصرف می‌شه چیه؟ یک ماده مخدری هست که هشت برابر حشیش قدرت اعتیادآوری داره، مصرفش رو هم اگر قطع کنی بی‌قراری و وحشت میاد سراغت. کلی هم آسیب‌زایی روانی برات داره که نگم براتون. پس کی بگه؟ بذارید از زبان سرهنگ حسین بابایی رئیس پلیس مبارزه با مواد مخدر تهران بشنویم که چی هست و چیکار می‌کنه. ماده توهم‌زای گل، هفت برابر حشیش قدرت توهم‌زایی داره و ۱۰۰ برابر حشیش قدرت ایجاد اعتیاد داره. از جمله عوارض ظاهری که داره خشکی شدید دهان، قرمزی چشم، توهم شدید، از بین رفتن قدرت تفکر و تعقل، اختلالات شدید اسکیزوفرنی، عفونت‌های ریوی، میل گرایش به سایر مواد علی‌الخصوص مواد روان‌گردان شیشه در مصرف‌کنندگان این مواد شایع هست`,
+    questions: [
+      { id: "3-1", question: "Based on the passage, why is “Gol” considered extremely addictive?",
+        keyphrases: ["مصرفش رو هم اگر قطع کنی بی‌قراری و وحشت میاد سراغت"],
+        options: [
+          { answer: "It has a higher hallucinogenic effect than hashish", correct:false },
+          { answer: "Stopping its use triggers restlessness and panic", correct:true },
+          { answer: "It causes lung infections in users", correct:false },
+          { answer: "Its side effects are mostly physical, not psychological", correct:false }
+        ]
+      },
+      { id: "3-2", question: "How does “Gol” compare to hashish in terms of hallucinogenic effects and addictive potential?",
+        keyphrases: [ "ماده توهم‌زای گل، هفت برابر حشیش قدرت توهم‌زایی داره و ۱۰۰ برابر حشیش قدرت ایجاد اعتیاد داره"],
+        options: [
+          { answer: "Seven times hallucinogenic, 100 times addictive", correct:true }, 
+          { answer: "Seven times hallucinogenic, same addictive potential", correct:false },
+          { answer: "Same hallucinogenic effect, eight times addictive", correct:false },
+          { answer: "Eight times hallucinogenic, seven times addictive", correct:false }
+        ]
+      },
+      { id: "3-3", question: "Which combination of effects best reflects the psychological and behavioral impact of “Gol”?",
+        keyphrases: ["توهم شدید، از بین رفتن قدرت تفکر و تعقل، اختلالات شدید اسکیزوفرنی، عفونت‌های ریوی، میل گرایش به سایر مواد علی‌الخصوص مواد روان‌گردان شیشه در مصرف‌کنندگان این مواد شایع هست"],
+        options: [
+          { answer: "Loss of reasoning, hallucinations, tendency to use stimulants", correct:true }, 
+          { answer: "Red eyes, dry mouth, improved cognition", correct:false },
+          { answer: "Increased social activity, calmness, improved memory", correct:false },
+          { answer: "Lung infections, thirst, mild hallucinations", correct:false }
+        ]
+      },
+      { id: "3-4", question: "Why might experts warn about the risk of “Gol” leading to use of other drugs?",
+        keyphrases: ["میل گرایش به سایر مواد علی‌الخصوص مواد روان‌گردان شیشه"],
+        options: [
+          { answer: "Addictive properties push users toward stimulants", correct:true },
+          { answer: "Users develop immunity to its effects", correct:false },
+          { answer: "It reduces appetite for other substances", correct:false },
+          { answer: "Its physical side effects are mild", correct:false }
+        ]
+      }
+    ]
+  }
+];
+
+const TOTAL_PAGES = listeningSets.length;
+
+/* ====================== ALL FUNCTIONS (unchanged except minor robustness) ====================== */
+function updateButtonText() {
+  el.nextBtn.textContent = currentPage === TOTAL_PAGES ? "Submit Challenge" : "Next Challenge";
+  el.nextBtn.classList.toggle("submit", currentPage === TOTAL_PAGES);
+}
+function stopAllAudio() {
+  abortAudio = true; audioSequenceActive = false;
+  [el.beepAudio, el.audioPlayer].forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
+  el.audioPlayer.src = "";
+  el.audioRibbon.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+}
+async function playAudioSequence() {
+  if (audioSequenceActive) return;
+  abortAudio = false; audioSequenceActive = true;
+  el.audioNote.style.display = "none";
+  el.audioRibbon.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioPlayer.src = listeningSets[currentPage-1].audio;
+  el.audioPlayer.load();
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const waitEnd = audio => new Promise(r => { audio.onended = () => { audio.currentTime = 0; r(); }; });
+  try {
+    await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+    await delay(1000); await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+  } catch(e) {}
+  if (!abortAudio) { audioSequenceActive = false; el.playBtn.style.display = "inline-block"; }
+}
+function enterListeningPhase() {
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+  el.audioNote.style.display = "block";
+  el.studyInstruction.style.display = "none";
+  disableMCQs(false);
+}
+function startStudyTimerForPage(page) {
+  stopAllAudio();
+  const set = listeningSets[page-1];
+  timeLeft = studySecondsPerQuestion * set.questions.length;
+  el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioRibbon.style.display = "none";
+  el.audioNote.style.display = "none";
+  el.studyInstruction.style.display = "block";
+  disableMCQs(true);
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) { clearInterval(countdownInterval); enterListeningPhase(); }
+    else el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  }, 1000);
+}
+function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+function showSaved() {
+  el.savedNotify.classList.add("show");
+  clearTimeout(el.savedNotify._t);
+  el.savedNotify._t = setTimeout(() => el.savedNotify.classList.remove("show"), 1200);
+}
+function disableMCQs(flag) {
+  el.mcSection.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = flag);
+}
+function renderMCQs(page) {
+  const set = listeningSets[page-1];
+  el.mcSection.innerHTML = "";
+  set.questions.forEach((q, qIdx) => {
+    const wrapper = document.createElement("div"); wrapper.className = "per-q";
+    const qEl = document.createElement("div"); qEl.className = "mc-question";
+    qEl.textContent = `${qIdx+1}. ${q.question}`;
+    wrapper.appendChild(qEl);
+    const box = document.createElement("div"); box.className = "mc-options-box";
+    q.options.forEach((opt, i) => {
+      const label = document.createElement("label"); label.className = "mc-option-wrapper";
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = q.id;
+      if (userAnswers[q.id] === i) input.checked = true;
+      input.onchange = () => { userAnswers[q.id] = i; showSaved(); };
+      const letter = document.createElement("strong");
+      letter.textContent = letters[i] + ") ";
+      const text = document.createElement("span");
+      text.textContent = opt.answer;
+      label.appendChild(input); label.appendChild(letter); label.appendChild(text);
+      box.appendChild(label);
+    });
+    wrapper.appendChild(box);
+    el.mcSection.appendChild(wrapper);
+  });
+}
+
+/* FINAL HIGHLIGHTING (works perfectly now) */
+function showResultsPage() {
+  stopAllAudio();
+  document.getElementById("app").style.display = "none";
+  el.congratsOverlay.style.display = "none";
+  el.resultOverlay.style.display = "block";
+  let html = "", correct = 0, total = 0;
+
+  listeningSets.forEach((set, sIdx) => {
+    let transcribedText = set.transcription;
+
+    // Collect all highlights for this audio
+    const highlights = [];
+    set.questions.forEach((q, qIndex) => {
+      const colorClass = `evidence-${qIndex % 8}`;
+      const phrases = Array.isArray(q.keyphrases) ? q.keyphrases : [q.keyphrases];
+      phrases.forEach(phrase => {
+        const trimmed = phrase.trim();
+        if (trimmed) highlights.push({ phrase: trimmed, replacement: `<span class="${colorClass}">${trimmed}</span>` });
+      });
+    });
+
+    // Longest first to avoid partial matches
+    highlights.sort((a, b) => b.phrase.length - a.phrase.length);
+    highlights.forEach(hl => {
+      const escaped = hl.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'g');
+      transcribedText = transcribedText.replace(regex, hl.replacement);
+    });
+
+    html += `<div class="result-box"><strong>Audio ${sIdx+1}</strong><div class="transcription">${transcribedText}</div></div>`;
+
+    set.questions.forEach((q, qIndex) => {
+      total++;
+      const userIdx = userAnswers[q.id];
+      const correctIdx = q.options.findIndex(o => o.correct);
+      if (userIdx === correctIdx) correct++;
+
+      const colorClass = `evidence-${qIndex % 8}`;
+      const badge = `<span style="background:#ff9800;color:white;padding:3px 9px;border-radius:5px;font-size:0.85rem;font-weight:bold;">Q${qIndex+1}</span>`;
+      html += `<div class="result-question">${badge} ${q.question}</div><div class="mc-options-box">`;
+      q.options.forEach((opt, i) => {
+        let cls = "result-option";
+        let extra = "";
+        if (i === correctIdx) cls += " correct";
+        if (i === userIdx && i !== correctIdx) cls += " wrong";
+        if (i === userIdx) extra = '<span class="your">Your answer → </span>';
+        html += `<div class="${cls}">${extra}<strong>${letters[i]})</strong> ${opt.answer}</div>`;
+      });
+      html += `</div>`;
+
+      const evidences = Array.isArray(q.keyphrases) ? q.keyphrases.map(p => p.trim()) : [];
+      if (evidences.length) {
+        html += `<div style="margin:10px 0;color:#d84315;font-size:0.98rem;">
+                   Evidence → <strong>${evidences.map(p => `“${p}”`).join(" , ")}</strong>
+                 </div>`;
+      }
+    });
+  });
+
+  const percent = Math.round((correct / total) * 100);
+  el.resultOverlay.innerHTML = `<div class="score-box">Final Score: ${correct}/${total} (${percent}%)</div>${html}`;
+}
+
+function initPage() {
+  stopAllAudio();
+  el.progressText.textContent = `${currentPage} out of ${TOTAL_PAGES}`;
+  el.setLabel.textContent = `Listening Question Set ${currentPage}`;
+  renderMCQs(currentPage);
+  startStudyTimerForPage(currentPage);
+  updateButtonText();
+}
+
+/* Event Listeners */
+el.skipCountdownBtn.onclick = () => { clearInterval(countdownInterval); timeLeft = 0; enterListeningPhase(); };
+el.playBtn.onclick = playAudioSequence;
+el.nextBtn.onclick = () => {
+  stopAllAudio();
+  if (currentPage < TOTAL_PAGES) { currentPage++; initPage(); }
+  else { el.congratsOverlay.style.display = "flex"; }
+};
+el.seeResultsBtn.onclick = () => { stopAllAudio(); el.congratsOverlay.style.display = "none"; showResultsPage(); };
+
+initPage();
+</script>
+</body>
+</html>
